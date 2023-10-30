@@ -88,7 +88,8 @@ def clean(df):
     df = cleanMB(df)
     df = scoreToNum(df)
     df = cleanNCI(df)
-    df = df.drop('Customer_ID', axis=1).reset_index(drop=True)
+    df = df.drop(['Customer_ID','Credit_Score'], axis=1).reset_index(drop=True)
+    df['Score'] = df['Score'].map({3:2, 2:1, 1:0})
     return df
 
 # Sample usage:

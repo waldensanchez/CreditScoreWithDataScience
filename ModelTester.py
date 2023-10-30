@@ -33,7 +33,7 @@ class Models():
         self.Stacking_automatic = ModelFunctions.stacking_auto(self.X_train, self.y_train, self.X_test, self.y_test)
     
     def Stacking_manual(self):
-        self.Stacking_manual = ModelFunctions.stacking_manual(self.MLP, self.SGD, self.KNC_u, self.KNC_d, self.DTC, self.RFC, self.LR, self.RC, self.LDA, self.GBC, self.SV, self.HGBC, self.XGB, self.X_train, self.y_train, self.X_test, self.y_test)
+        self.Stacking_manual = ModelFunctions.stacking_manual(self.MLP, self.SGD, self.KNC_u, self.KNC_d, self.DTC, self.RFC, self.LR, self.RC, self.LDA, self.GBC, self.SV, self.HGBC, self.X_train, self.y_train, self.X_test, self.y_test)
 
     def All_Variables_Models(self):
         self.X_train_all, self.X_test_all, self.y_train_all, self.y_test_all, self.GBC_All = ModelFunctions.full_variables_model(self.all_variables)

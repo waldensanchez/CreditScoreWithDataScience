@@ -1,20 +1,4 @@
-import DataFunctions
 import ModelFunctions
-
-class Companies():
-    def __init__(self, df) -> None:
-        self.df = df
-
-    def get_ratios(self):
-        self.ratios = DataFunctions.financial_ratios(self.df)
-        return self.ratios
-    
-    def clean_ratios(self):
-        self.clean = DataFunctions.clean_ratios_function(self.ratios)
-        return self.clean
-
-    def model_input(self):
-        self.input = DataFunctions.final_step_cleansing(self.clean)
     
 class Models():
     def __init__(self, df) -> None:
@@ -43,7 +27,7 @@ class Models():
 
     def models_individual(self):
         """ Models with direct data. """
-        self.MLP, self.SGD, self.KNC_u, self.KNC_d, self.CNB, self.DTC, self.RFC, self.LR, self.RC, self.LDA, self.GBC, self.SV, self.HGBC, self.XGB = ModelFunctions.models_individual(self.X_train, self.y_train, self.X_test, self.y_test)
+        self.MLP, self.SGD, self.KNC_u, self.KNC_d, self.DTC, self.RFC, self.LR, self.RC, self.LDA, self.GBC, self.SV, self.HGBC = ModelFunctions.models_individual(self.X_train, self.y_train, self.X_test, self.y_test)
 
     def Stacking_automatic(self):
         self.Stacking_automatic = ModelFunctions.stacking_auto(self.X_train, self.y_train, self.X_test, self.y_test)

@@ -27,7 +27,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 from sklearn.linear_model import SGDClassifier, LogisticRegression, RidgeClassifierCV
 
 def split(df: pd.DataFrame):
-    X_train, X_test, y_train, y_test = train_test_split(df.drop(['Return'], axis = 1),df['Return'], test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(df.drop(['Score'], axis = 1),df['Score'], test_size=0.2, random_state=42)
     return X_train, X_test, y_train, y_test
 
 def Logistic(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.DataFrame, y_test: pd.DataFrame):
@@ -51,8 +51,8 @@ def Logistic(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.DataFrame,
     print("Classification Report:\n",report)
 
 def OLS_Reg(df: pd.DataFrame):
-    X_sm = df.drop(['Return'], axis = 1)
-    y_sm = df['Return']
+    X_sm = df.drop(['Score'], axis = 1)
+    y_sm = df['Score']
     X = sm.add_constant(X_sm)
     model = sm.OLS(y_sm, X) 
     result = model.fit()
@@ -115,7 +115,7 @@ def models_individual(X_train: pd.DataFrame, y_train: pd.DataFrame, X_test: pd.D
     SGD = SGDClassifier(penalty="l2", max_iter=1000).fit(X_train, y_train)
     KNC_u = KNeighborsClassifier(weights='uniform').fit(X_train, y_train)
     KNC_d = KNeighborsClassifier(weights='distance').fit(X_train, y_train)
-    CNB = CategoricalNB().fit(X_train, y_train)
+    #CNB = CategoricalNB().fit(X_train, y_train)
     DTC = DecisionTreeClassifier(random_state=0).fit(X_train, y_train)
     RFC = RandomForestClassifier(random_state=0).fit(X_train, y_train)
     LR = LogisticRegression(max_iter=1000, random_state=0).fit(X_train, y_train)
@@ -124,7 +124,7 @@ def models_individual(X_train: pd.DataFrame, y_train: pd.DataFrame, X_test: pd.D
     GBC = GradientBoostingClassifier().fit(X_train, y_train)
     SV = SVC().fit(X_train, y_train)
     HGBC = HistGradientBoostingClassifier().fit(X_train, y_train)
-    XGB = xgboost.XGBClassifier().fit(X_train, y_train)
+    #XGB = xgboost.XGBClassifier().fit(X_train, y_train)
 
     # Name models and specs
     models = {'Multilayer Perceptron':MLP, 'Stochastic Gradient Descent':SGD,\
@@ -134,7 +134,7 @@ def models_individual(X_train: pd.DataFrame, y_train: pd.DataFrame, X_test: pd.D
             'Random Forest Classifier':RFC, 'Logistic Regression':LR,\
             'Ridge Classifier CV':RC, 'Linear Discriminant Analysis':LDA,\
             'Gradient Boosting Classifier':GBC, 'Support Vector Classifier':SV,\
-            'HGBC':HGBC, 'XGBoost':XGB
+            'HGBC':HGBC
             }
     # Crear diccionarios para almacenar los resultados de train y test
     train_accuracies = {}
@@ -162,7 +162,7 @@ def models_individual(X_train: pd.DataFrame, y_train: pd.DataFrame, X_test: pd.D
         print(f'Accuracy en Test: {test_accuracy:.4f}')
         print('-' * 40)
 
-    return MLP, SGD, KNC_u, KNC_d, CNB, DTC, RFC, LR, RC, LDA, GBC, SV, HGBC, XGB
+    return MLP, SGD, KNC_u, KNC_d, DTC, RFC, LR, RC, LDA, GBC, SV, HGBC
 
 def stacking_auto(X_train: pd.DataFrame, y_train: pd.DataFrame, X_test: pd.DataFrame, y_test:pd.DataFrame):
     #SKLEARN STACKINGCLASSIFIER

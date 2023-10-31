@@ -139,6 +139,21 @@ class Preprocessing:
         self.data['Payment_of_Min_Amount'] = self.data['Payment_of_Min_Amount'].map(payment_of_min_amount_mapping).fillna(0)
         self.data['Credit_Score'] = self.data['Credit_Score'].map(score).dropna(axis = 0)
 
+    def fill_values_and_log(self, columns):
+        for col in columns:
+            # Convert the column to numeric, coercing errors to NaN
+            self.data[col] = pd.to_numeric(self.data[col], errors='coerce')
+            
+            # First, try to fill missing values by finding a non-missing value for the same 'Customer_ID'
+            self.data[col] = self.data.groupby('Customer_ID')[col].transform(lambda x: x.ffill().bfill())
+            
+            # Then fill any remaining missing values using ffill
+            self.data[col] = self.data[col].fillna(method='ffill')
+            
+            # Apply natural log to the non-missing values, adding a small positive value to avoid taking a log of zero
+            self.data[col] = self.data[col].apply(lambda x: np.log(x + 1e-9) if x > 0 else x)
+
+
     def preprocess_data(self):
         # Transform 'Credit_History_Age' to numerical format and adjust based on 'Month' progression
         self.transform_credit_history_age()
@@ -146,7 +161,10 @@ class Preprocessing:
         self.transform_payment_behavior()
         # Map 'Credit_Mix' and 'Payment_of_Min_Amount' to numerical values
         self.map_categorical_to_numerical()
-        # Other preprocessing steps...
+        self.fill_values_and_log([
+            'Annual_Income', 'Monthly_Inhand_Salary', 'Outstanding_Debt',
+            'Amount_invested_monthly', 'Monthly_Balance'
+        ])
 
         return self.data
 

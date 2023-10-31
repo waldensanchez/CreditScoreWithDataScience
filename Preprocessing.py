@@ -36,17 +36,29 @@ class Preprocessing:
                               np.where(df[column] < lower_bound, lower_bound, df[column]))
         return df
 
-    def preprocess_data(self):
-        # Apply transformations to columns with high skewness (arbitrarily chosen as skew > 1)
-        numerical_skewness = self.data.select_dtypes(include=['float64', 'int64']).skew().sort_values(ascending=False)
-        for col in numerical_skewness.index:
-            if col != 'Score':  # Exclude 'Score' from transformations
-                if numerical_skewness[col] > 1:
-                    self.data[col] = self.apply_transformation(self.data[col])
+    def transform_payment_behaviour(self):
+        # Split 'Payment_Behaviour' into 'Spent' and 'Payment_Size'
+        self.data['Spent'] = self.data['Payment_Behaviour'].str.extract(r'(High_spent|Low_spent)')[0]
+        self.data['Payment_Size'] = self.data['Payment_Behaviour'].str.extract(r'(Small_value_payments|High_value_payments|Large_value_payments)')[0]
+        
+        # Map the extracted strings to categorical values
+        spent_mapping = {'Low_spent': 0, 'High_spent': 1}
+        payment_size_mapping = {'Small_value_payments': 1, 'High_value_payments': 2, 'Large_value_payments': 3}
+        self.data['Spent'] = self.data['Spent'].map(spent_mapping)
+        self.data['Payment_Size'] = self.data['Payment_Size'].map(payment_size_mapping)
+        
+        # Handle errors by grouping by ID and filling values if possible, otherwise allocate 0
+        self.data['Spent'] = self.data.groupby('Customer_ID')['Spent'].transform(lambda x: x.fillna(method='bfill').fillna(0))
+        self.data['Payment_Size'] = self.data.groupby('Customer_ID')['Payment_Size'].transform(lambda x: x.fillna(method='bfill').fillna(0))
 
-        # Apply capping to 'Num_Credit_Inquiries' and 'Monthly_Inhand_Salary'
-        self.data = self.cap_extreme_values(self.data, 'Num_Credit_Inquiries')
-        self.data = self.cap_extreme_values(self.data, 'Monthly_Inhand_Salary')
+        # Drop the original 'Payment_Behaviour' column
+        self.data.drop('Payment_Behaviour', axis=1, inplace=True)
+
+    def preprocess_data(self):
+        # Apply the transformations for 'Payment_Behaviour'
+        self.transform_payment_behaviour()
+
+        # Other preprocessing steps would go here...
 
         return self.data
 

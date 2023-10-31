@@ -59,6 +59,7 @@ class Preprocessing:
         self.map_month_to_number()
         self.data.sort_values(by=['Customer_ID', 'Month'], inplace=True)
         self.data['Credit_History_Age'] = self.data.groupby('Customer_ID')['Credit_History_Age'].ffill() + self.data.groupby('Customer_ID').cumcount() / 12
+        self.data['Credit_History_Age'] = self.data['Credit_History_Age'].fillna(0)
 
     def transform_payment_behavior(self):
         # Define mappings for 'Spent' and 'Payment_size'
@@ -143,7 +144,7 @@ class Preprocessing:
         for col in columns:
             # Convert the column to numeric, coercing errors to NaN
             self.data[col] = pd.to_numeric(self.data[col], errors='coerce')
-            
+
             # First, try to fill missing values by finding a non-missing value for the same 'Customer_ID'
             self.data[col] = self.data.groupby('Customer_ID')[col].transform(lambda x: x.ffill().bfill())
             
@@ -153,6 +154,18 @@ class Preprocessing:
             # Apply natural log to the non-missing values, adding a small positive value to avoid taking a log of zero
             self.data[col] = self.data[col].apply(lambda x: np.log(x + 1e-9) if x > 0 else x)
 
+
+    
+    def clean_fico_variables(self):
+        # Eliminate NaN values and Hyphens from data
+        self.data['Num_of_Loan'] = self.data['Num_of_Loan'].apply(remove_hyphen_and_negatives)
+        self.data['Num_of_Loan'] = self.data.groupby('ID')['Num_of_Loan'].ffill().bfill()
+
+        self.data['Num_of_Delayed_Payment'] = self.data.groupby('ID')['Num_of_Delayed_Payment'].fillna(-42)
+        self.data['Num_of_Delayed_Payment'] = self.data['Num_of_Delayed_Payment'].apply(remove_hyphen_and_negatives)
+        self.data['Num_of_Delayed_Payment'] = self.data['Num_of_Delayed_Payment'].fillna(0)
+        self.data['Num_Credit_Inquiries'] = self.data.groupby('ID')['Num_Credit_Inquiries'].ffill().bfill()
+        self.data['Num_Credit_Inquiries'] = self.data['Num_Credit_Inquiries'].apply(int).fillna(0)
 
     def preprocess_data(self):
         # Transform 'Credit_History_Age' to numerical format and adjust based on 'Month' progression
@@ -165,7 +178,9 @@ class Preprocessing:
             'Annual_Income', 'Monthly_Inhand_Salary', 'Outstanding_Debt',
             'Amount_invested_monthly', 'Monthly_Balance'
         ])
+        self.clean_fico_variables()
 
         return self.data
-
-    # Other methods of the class...
+def remove_hyphen_and_negatives(x):
+                x = str(x).split("_")[0]
+                return np.nan if int(x) <= 0 else int(x)

@@ -71,20 +71,24 @@ class Preprocessing:
             'Medium_value_payments': 2,
             'Large_value_payments': 3
         }
-        
+
         # Function to split 'Payment_Behaviour' and map to new categorical variables
         def split_payment_behavior(behavior):
             # If the behavior is a special case or NaN, return NaN to handle later
             if pd.isnull(behavior) or behavior == '!@9#%8':
                 return np.nan, np.nan
+            # Identify the index of the second underscore
+            try:
+                second_underscore_index = behavior.index('_', behavior.index('_') + 1)
+            except ValueError:
+                # If there are not enough underscores, return 0, 0
+                return 0, 0
             # Split the behavior into 'spent' and 'payment_size' components
-            parts = behavior.split('_value_')
-            if len(parts) == 2:
-                spent, payment_size = parts
-                spent_value = spent_mapping.get(spent, 0)
-                payment_size_value = payment_size_mapping.get(payment_size, 0)
-                return spent_value, payment_size_value
-            return 0, 0  # Default case if the format is not correct
+            spent = behavior[:second_underscore_index]
+            payment_size = behavior[second_underscore_index + 1:]
+            spent_value = spent_mapping.get(spent, 0)
+            payment_size_value = payment_size_mapping.get(payment_size, 0)
+            return spent_value, payment_size_value
 
         # Apply the function and create new columns
         self.data[['Spent', 'Payment_size']] = self.data.apply(
@@ -114,19 +118,26 @@ class Preprocessing:
         # Drop the original 'Payment_Behaviour' column
         self.data.drop('Payment_Behaviour', axis=1, inplace=True)
 
+
     def map_categorical_to_numerical(self):
         # Map 'Credit_Mix' and 'Payment_of_Min_Amount' to numerical values
         credit_mix_mapping = {
-            'Standard': 0,
-            'Good': 1,
-            'Bad': 2
+            'Standard': 1,
+            'Good': 2,
+            'Bad': 0
         }
         payment_of_min_amount_mapping = {
             'No': 0,
             'Yes': 1
         }
+        score = {
+            'Poor': 0,
+            'Standard': 1,
+            'Good': 2
+        }
         self.data['Credit_Mix'] = self.data['Credit_Mix'].map(credit_mix_mapping).fillna(0)
         self.data['Payment_of_Min_Amount'] = self.data['Payment_of_Min_Amount'].map(payment_of_min_amount_mapping).fillna(0)
+        self.data['Credit_Score'] = self.data['Credit_Score'].map(score).dropna(axis = 0)
 
     def preprocess_data(self):
         # Transform 'Credit_History_Age' to numerical format and adjust based on 'Month' progression
